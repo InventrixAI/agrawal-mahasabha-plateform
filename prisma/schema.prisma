@@ -1,0 +1,178 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Authentication
+model User {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  password    String
+  role        UserRole  @default(MEMBER)
+  status      UserStatus @default(PENDING)
+  isVerified  Boolean   @default(false)
+  lastLogin   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relationships
+  member      Member?
+  contentCreated Content[] @relation("ContentCreator")
+  
+  @@map("users")
+}
+
+// Member Management
+model Member {
+  id            String        @id @default(cuid())
+  userId        String        @unique
+  membershipNo  String        @unique
+  firstName     String
+  lastName      String
+  fatherName    String?
+  motherName    String?
+  dateOfBirth   DateTime?
+  gender        Gender        @default(MALE)
+  maritalStatus MaritalStatus @default(SINGLE)
+  gotra         String
+  bloodGroup    String?
+  education     String?
+  occupation    String?
+  firm          String?
+  locality      String
+  address       Json?         // Flexible address structure
+  phone         String?
+  profilePhoto  String?
+  bio           String?
+  isPublic      Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relationships
+  user              User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventRegistrations EventRegistration[]
+  
+  @@map("members")
+}
+
+// Content Management (News, Events, Pages)
+model Content {
+  id          String      @id @default(cuid())
+  type        ContentType
+  title       String
+  slug        String      @unique
+  content     String
+  excerpt     String?
+  images      String[]
+  metadata    Json?       // SEO, event details, etc.
+  isPublished Boolean     @default(false)
+  publishedAt DateTime?
+  featuredImage String?
+  tags        String[]
+  category    String?
+  views       Int         @default(0)
+  createdBy   String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relationships
+  creator     User @relation("ContentCreator", fields: [createdBy], references: [id])
+  registrations EventRegistration[]
+  
+  @@map("content")
+}
+
+// Event Registration
+model EventRegistration {
+  id         String              @id @default(cuid())
+  eventId    String
+  memberId   String
+  status     RegistrationStatus  @default(REGISTERED)
+  guestCount Int                 @default(0)
+  notes      String?
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  event   Content @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  member  Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  
+  @@unique([eventId, memberId])
+  @@map("event_registrations")
+}
+
+// Gallery Management
+model Gallery {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  category    String
+  images      String[]
+  isPublic    Boolean  @default(true)
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("gallery")
+}
+
+// Site Settings
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  type      String   @default("string")
+  category  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("settings")
+}
+
+// Enums
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  MEMBER
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+  SUSPENDED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+}
+
+enum ContentType {
+  NEWS
+  EVENT
+  PAGE
+  ANNOUNCEMENT
+}
+
+enum RegistrationStatus {
+  REGISTERED
+  CONFIRMED
+  ATTENDED
+  CANCELLED
+  NO_SHOW
+}
