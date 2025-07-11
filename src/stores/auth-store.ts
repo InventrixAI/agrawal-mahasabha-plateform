@@ -170,7 +170,6 @@ export const useAuthStore = create<AuthState>()(
           const response = await fetch('/api/auth/me', {
             headers: {
               Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
             },
           })
 
@@ -186,31 +185,27 @@ export const useAuthStore = create<AuthState>()(
             }
           }
 
+          // If refresh fails, clear auth state
           removeAuthCookie()
-          set({ user: null, isAuthenticated: false, isLoading: false })
+          set({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+          })
         } catch (error) {
           console.error('Refresh user error:', error)
           removeAuthCookie()
-          set({ user: null, isAuthenticated: false, isLoading: false })
+          set({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+          })
         }
       },
     }),
     {
       name: 'auth-storage',
-      partialize: (state) => ({
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
-      }),
+      partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
     }
   )
 )
-
-export const useIsAdmin = () => {
-  const user = useAuthStore((state) => state.user)
-  return user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'
-}
-
-export const useIsApproved = () => {
-  const user = useAuthStore((state) => state.user)
-  return user?.status === 'ACTIVE'
-}

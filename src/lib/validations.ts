@@ -26,6 +26,10 @@ export const registerSchema = z
     path: ['confirmPassword'],
   })
 
+// Type exports
+export type LoginInput = z.infer<typeof loginSchema>
+export type RegisterInput = z.infer<typeof registerSchema>
+
 // Member schemas
 export const memberUpdateSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters'),
@@ -62,34 +66,8 @@ export const eventRegistrationSchema = z.object({
   notes: z.string().optional(),
 })
 
-// Gallery schemas
-export const gallerySchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters'),
-  description: z.string().optional(),
-  category: z.string().min(2, 'Category is required'),
-  images: z.array(z.string()).min(1, 'At least one image is required'),
-  isPublic: z.boolean().optional(),
-})
-
 // Admin schemas
 export const memberApprovalSchema = z.object({
   action: z.enum(['approve', 'reject']),
   reason: z.string().optional(),
 })
-
-export const settingSchema = z.object({
-  key: z.string(),
-  value: z.string(),
-  type: z.string().optional(),
-  category: z.string().optional(),
-})
-
-// Types
-export type LoginInput = z.infer<typeof loginSchema>
-export type RegisterInput = z.infer<typeof registerSchema>
-export type MemberUpdateInput = z.infer<typeof memberUpdateSchema>
-export type ContentInput = z.infer<typeof contentSchema>
-export type EventRegistrationInput = z.infer<typeof eventRegistrationSchema>
-export type GalleryInput = z.infer<typeof gallerySchema>
-export type MemberApprovalInput = z.infer<typeof memberApprovalSchema>
-export type SettingInput = z.infer<typeof settingSchema>
