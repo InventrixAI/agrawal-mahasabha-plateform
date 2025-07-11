@@ -6,10 +6,25 @@ import { useAuthStore } from '@/stores/auth-store'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
+// Define the types for your data structures
+interface Event {
+  id: number
+  title: string
+  date: string
+  time: string
+}
+
+interface NewsItem {
+  id: number
+  title: string
+  date: string
+}
+
 export default function MemberDashboard() {
   const { user, logout } = useAuthStore()
-  const [upcomingEvents, setUpcomingEvents] = useState([])
-  const [recentNews, setRecentNews] = useState([])
+  // Explicitly type the state with the defined interfaces
+  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([])
+  const [recentNews, setRecentNews] = useState<NewsItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -52,18 +67,15 @@ export default function MemberDashboard() {
             <div className="flex items-center space-x-3">
               <Crown className="h-8 w-8 text-orange-600" />
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Agarwal Sabha</h1>
-                <p className="text-sm text-gray-500">Member Portal</p>
+                <h1 className="text-xl font-semibold text-gray-900">Agarwal Sabha</h1>
+                <p className="text-sm text-gray-600">Admin Dashboard</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">
-                  {user?.member?.firstName} {user?.member?.lastName}
-                </p>
-                <p className="text-xs text-gray-500">Member ID: {user?.member?.membershipNo}</p>
-              </div>
-              <Button variant="outline" size="sm" onClick={handleLogout}>
+              <span className="text-sm text-gray-700">
+                Welcome, {user?.member?.firstName || 'Admin'}
+              </span>
+              <Button onClick={handleLogout} variant="outline" size="sm">
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
               </Button>
@@ -72,46 +84,37 @@ export default function MemberDashboard() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="mb-2 text-2xl font-bold text-gray-900">
-            Welcome, {user?.member?.firstName}!
-          </h2>
-          <p className="text-gray-600">
-            Stay connected with your community activities and updates.
-          </p>
-        </div>
+      {/* Main Content */}
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          {/* Quick Actions */}
+          <div className="lg:col-span-1">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <User className="h-5 w-5" />
+                  <span>Quick Actions</span>
+                </CardTitle>
+                <CardDescription>Common administrative tasks</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 gap-3">
+                  {quickActions.map((action) => (
+                    <Button
+                      key={action.label}
+                      variant="outline"
+                      className="flex items-center justify-start space-x-3 p-4"
+                      onClick={() => (window.location.href = action.href)}
+                    >
+                      <action.icon className="h-4 w-4" />
+                      <span>{action.label}</span>
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-        {/* Quick Actions */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Access common features and services</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-              {quickActions.map((action, index) => {
-                const Icon = action.icon
-                return (
-                  <button
-                    key={index}
-                    onClick={() => console.log(`Navigate to ${action.href}`)}
-                    className="flex flex-col items-center rounded-lg bg-gray-50 p-4 transition-colors hover:bg-gray-100"
-                  >
-                    <Icon className="mb-2 h-6 w-6 text-gray-600" />
-                    <span className="text-center text-sm font-medium text-gray-700">
-                      {action.label}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* Upcoming Events */}
           <Card>
             <CardHeader>
@@ -119,7 +122,7 @@ export default function MemberDashboard() {
                 <Calendar className="h-5 w-5" />
                 <span>Upcoming Events</span>
               </CardTitle>
-              <CardDescription>Don&apos;t miss these community events</CardDescription>
+              <CardDescription>Next community events</CardDescription>
             </CardHeader>
             <CardContent>
               {isLoading ? (
@@ -133,7 +136,7 @@ export default function MemberDashboard() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {upcomingEvents.map((event: any) => (
+                  {upcomingEvents.map((event) => (
                     <div key={event.id} className="border-l-4 border-orange-500 py-2 pl-4">
                       <h4 className="font-medium text-gray-900">{event.title}</h4>
                       <p className="text-sm text-gray-600">
@@ -170,63 +173,23 @@ export default function MemberDashboard() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {recentNews.map((news: any) => (
-                    <div key={news.id} className="border-b border-gray-100 pb-3 last:border-b-0">
-                      <h4 className="cursor-pointer font-medium text-gray-900 hover:text-orange-600">
-                        {news.title}
-                      </h4>
-                      <p className="text-sm text-gray-500">
+                  {recentNews.map((news) => (
+                    <div key={news.id} className="border-l-4 border-blue-500 py-2 pl-4">
+                      <h4 className="font-medium text-gray-900">{news.title}</h4>
+                      <p className="text-sm text-gray-600">
                         {new Date(news.date).toLocaleDateString()}
                       </p>
                     </div>
                   ))}
                   <Button variant="outline" className="mt-4 w-full">
-                    Read All News
+                    View All News
                   </Button>
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
-
-        {/* Member Profile Card */}
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <User className="h-5 w-5" />
-              <span>Your Profile</span>
-            </CardTitle>
-            <CardDescription>Your membership information</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-              <div>
-                <label className="text-sm font-medium text-gray-600">Name</label>
-                <p className="font-medium text-gray-900">
-                  {user?.member?.firstName} {user?.member?.lastName}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Membership ID</label>
-                <p className="font-medium text-gray-900">{user?.member?.membershipNo}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Email</label>
-                <p className="font-medium text-gray-900">{user?.email}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Status</label>
-                <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                  {user?.status}
-                </span>
-              </div>
-            </div>
-            <div className="mt-6">
-              <Button variant="outline">Update Profile</Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      </main>
     </div>
   )
 }
