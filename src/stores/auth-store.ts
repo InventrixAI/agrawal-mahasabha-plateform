@@ -56,7 +56,7 @@ interface AuthState {
 
 const setAuthCookie = (token: string) => {
   if (typeof document !== 'undefined') {
-    document.cookie = `token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; secure; samesite=strict`
+    document.cookie = `token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`
   }
 }
 
@@ -103,12 +103,15 @@ export const useAuthStore = create<AuthState>()(
 
           if (data.success) {
             const { user: userData, token } = data.data
+
             setAuthCookie(token)
+
             set({
               user: userData,
               isAuthenticated: true,
               isLoading: false,
             })
+
             return { success: true }
           }
 
@@ -185,7 +188,6 @@ export const useAuthStore = create<AuthState>()(
             }
           }
 
-          // If refresh fails, clear auth state
           removeAuthCookie()
           set({
             user: null,
