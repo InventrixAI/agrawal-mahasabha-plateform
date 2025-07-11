@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
+export const dynamic = 'force-dynamic' // ← ADD THIS LINE
+
 export async function GET(request: NextRequest) {
   try {
     // Get user ID from middleware headers
